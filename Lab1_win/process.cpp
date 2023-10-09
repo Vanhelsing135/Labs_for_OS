@@ -20,10 +20,10 @@ int main(void) {
     if (SetConsoleCtrlHandler(CtrlHandler, TRUE)) {
         printf("Waiting for signal\n");
         while (TRUE) {}
+        return 0;
     }
     else {
         printf("ERROR with setting control handler");
         return 1;
     }
-    return 0;
 }
