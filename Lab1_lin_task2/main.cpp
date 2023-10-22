@@ -26,7 +26,7 @@ void* printRandomNumber(void*) {
 	}
 }
 
-void* readText(void*) {
+void* reversString(void*) {
 	while (TRUE) {
 		char str[250];
 		scanf("%s", str);
@@ -45,7 +45,7 @@ int main() {
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
 	first = pthread_create(&thread1, NULL, printRandomNumber, NULL);
-	second = pthread_create(&thread2, NULL, readText, NULL);
+	second = pthread_create(&thread2, NULL, reversString, NULL);
 	while (TRUE){}
 	return 0;
 }
