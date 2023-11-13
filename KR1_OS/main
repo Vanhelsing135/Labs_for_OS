@@ -1,0 +1,88 @@
+#include <iostream>
+#include <vector>
+#include <thread>
+#include <mutex>
+#include <chrono>
+#include <sstream>
+#include <string>
+
+using namespace std;
+
+double accountBalance = 100.0;  
+
+mutex balanceMutex;
+
+void changeBalance(const vector<double>& changes) {
+    for (int i = 1; i < changes.size(); i++) {
+        bool operationCompleted = false;
+        int maxAttempts = changes[0];
+
+        while (!operationCompleted && maxAttempts > 0) {
+            this_thread::sleep_for(chrono::milliseconds(50));  
+
+            unique_lock<mutex> lock(balanceMutex);
+            double prevBalance = accountBalance;
+            double newBalance = prevBalance + changes[i];
+
+            if (newBalance >= 0) {
+                accountBalance = newBalance;
+                operationCompleted = true;
+
+                stringstream notification;
+                notification << "было=" << prevBalance << ", операция " << (changes[i] >= 0 ? "+" : "-") << abs(changes[i]) << ", стало=" << newBalance;
+                this_thread::sleep_for(chrono::milliseconds(100));  
+                cout << notification.str() <<  endl;
+            }
+            else {
+                maxAttempts--;
+                if (maxAttempts > 0) {
+                     this_thread::sleep_for(chrono::milliseconds(100));  // Задержка перед повторной попыткой операции
+                }
+                else {
+                    cout << "Не удалось выполнить операцию " << (changes[i] >= 0 ? "пополнения" : "снятия") << " на сумму " << abs(changes[i]) << ". Максимальное количество попыток исчерпано." << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void checkBalance() {
+    lock_guard<mutex> lock(balanceMutex);
+    cout << "Текущий баланс счёта: " << accountBalance << endl;
+}
+
+double Random() {
+    return (double)(rand() % 257 + (-170));
+}
+int main(int argc, char* argv[]) {
+    int numOfOpers;
+    cout << "Enter the amount of operations:";
+    cin >> numOfOpers;
+    vector<double> scenario1;
+    setlocale(LC_ALL, "RUS");
+    int maxAttempts;
+    cout << "Enter max amount of attempts: ";
+    cin >> maxAttempts;
+
+    scenario1.push_back(maxAttempts);
+
+    for (int i = 0; i < numOfOpers; i++) {
+        scenario1.push_back(Random());
+    }
+
+    vector<double> scenario2;
+    scenario2.push_back(maxAttempts);
+    for (int i = 0; i < numOfOpers; i++) {
+        scenario2.push_back(Random());
+    }
+
+    thread thread1(changeBalance, scenario1);
+    thread thread2(changeBalance, scenario2);
+
+    thread1.join();
+    thread2.join();
+
+    checkBalance();
+
+    return 0;
+}
